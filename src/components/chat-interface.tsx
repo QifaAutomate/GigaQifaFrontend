@@ -27,7 +27,7 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Initialize welcome message when translations are available
   useEffect(() => {
@@ -36,11 +36,15 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
     ])
   }, [t])
 
+  // Function to scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  // Scroll whenever messages or loading state changes
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
-  }, [messages])
+    scrollToBottom()
+  }, [messages, isLoading])
 
   const handleSend = async () => {
     if (!input.trim() && attachedFiles.length === 0) return
@@ -76,7 +80,7 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
 
   return (
     <div className="flex flex-col h-full bg-white rounded-2xl shadow-xl border overflow-hidden">
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-4">
         <div className="max-w-4xl mx-auto space-y-2">
           {messages.map((m, i) => (
             <ChatMessage key={i} role={m.role} content={m.content} />
@@ -95,6 +99,8 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
               </div>
             </div>
           )}
+          {/* Dummy element to scroll to */}
+          <div ref={messagesEndRef} className="h-4" />
         </div>
       </ScrollArea>
 
