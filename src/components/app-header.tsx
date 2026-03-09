@@ -13,17 +13,18 @@ export function AppHeader() {
   return (
     <header className="flex h-20 w-full items-center justify-between px-8 bg-white/80 backdrop-blur-md border-b sticky top-0 z-50">
       <div className="flex items-center gap-4">
-        <div className="relative h-12 w-12 rounded-xl overflow-hidden border shadow-sm bg-white">
+        <div className="relative h-12 w-12 rounded-xl overflow-hidden border shadow-sm bg-white flex items-center justify-center">
           <Image
             src={logo?.imageUrl || ""}
-            alt="Logo"
-            fill
-            className="object-contain p-1"
-            data-ai-hint="colorful circular logo"
+            alt="GigaGifa Logo"
+            width={48}
+            height={48}
+            className="object-contain p-1 transition-transform hover:scale-105 duration-300"
+            data-ai-hint="tech logo"
           />
         </div>
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
+          <h1 className="text-xl font-bold tracking-tight text-foreground leading-tight">
             GigaGifa <span className="text-primary">Прототип</span>
           </h1>
           <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-secondary">
