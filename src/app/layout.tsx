@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { LanguageProvider } from "@/context/language-context";
 
 export const metadata: Metadata = {
-  title: 'AgentConnect Console',
+  title: 'GigaGifa Прототип',
   description: 'Intelligent AI Agent Network Interface',
 };
 
