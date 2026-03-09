@@ -7,7 +7,7 @@ type Language = 'en' | 'ru';
 
 const translations = {
   en: {
-    console_version: "GigaGifa v2.4",
+    console_version: "GigaQifa v2.4",
     workspace: "Workspace",
     active_chat: "Active Chat",
     knowledge_base: "Knowledge Base",
@@ -24,11 +24,11 @@ const translations = {
     thinking: "Thinking...",
     searching: "Parsing...",
     validating: "Validating...",
-    header_title: "GigaGifa Prototyper",
+    header_title: "GigaQifa Prototyper",
     header_subtitle: "Enterprise Agent Network",
     chat_welcome: "Hello! I am your AI Agent Network. How can I assist you today? You can drop files in the right panel to provide me with more context.",
     chat_placeholder: "Type your query to the agent network...",
-    chat_disclaimer: "GigaGifa Prototyper can analyze complex documents using advanced AI agents.",
+    chat_disclaimer: "GigaQifa Prototyper can analyze complex documents using advanced AI agents.",
     chat_error: "I'm sorry, I encountered an error while processing your request. Please try again.",
     dropzone_title: "Drop context files here",
     dropzone_subtitle: "Support PDF, Excel, and more",
@@ -40,7 +40,7 @@ const translations = {
     history_items: ["Q4 Financial Analysis", "Inventory Optimization", "Customer Risk Report", "Supply Chain Logistics"]
   },
   ru: {
-    console_version: "GigaGifa v2.4",
+    console_version: "GigaQifa v2.4",
     workspace: "Рабочее пространство",
     active_chat: "Активный чат",
     knowledge_base: "База знаний",
@@ -57,11 +57,11 @@ const translations = {
     thinking: "Думает...",
     searching: "Парсинг...",
     validating: "Проверка...",
-    header_title: "GigaGifa Прототип",
+    header_title: "GigaQifa Прототип",
     header_subtitle: "Корпоративная сеть агентов",
     chat_welcome: "Привет! Я ваша сеть ИИ-агентов. Чем я могу вам помочь сегодня? Вы можете перетащить файлы в правую панель, чтобы предоставить мне больше контекста.",
     chat_placeholder: "Введите ваш запрос для сети агентов...",
-    chat_disclaimer: "GigaGifa Прототип может анализировать сложные документы с помощью продвинутых ИИ-агентов.",
+    chat_disclaimer: "GigaQifa Прототип может анализировать сложные документы с помощью продвинутых ИИ-агентов.",
     chat_error: "К сожалению, произошла ошибка при обработке вашего запроса. Пожалуйста, попробуйте еще раз.",
     dropzone_title: "Перетащите файлы контекста сюда",
     dropzone_subtitle: "Поддержка PDF, Excel и других форматов",
@@ -91,9 +91,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t }}>
-      <LanguageContext.Provider value={{ lang, setLang, t }}>
       {children}
-    </LanguageContext.Provider>
     </LanguageContext.Provider>
   );
 }

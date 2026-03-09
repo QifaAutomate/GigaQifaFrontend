@@ -16,7 +16,7 @@ export function AppHeader() {
         <div className="relative h-12 w-12 rounded-xl overflow-hidden border shadow-sm bg-white flex items-center justify-center">
           <Image
             src={logo?.imageUrl || ""}
-            alt="GigaGifa Logo"
+            alt="GigaQifa Logo"
             width={48}
             height={48}
             className="object-contain p-1 transition-transform hover:scale-105 duration-300"
@@ -25,7 +25,7 @@ export function AppHeader() {
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground leading-tight">
-            GigaGifa <span className="text-primary">Прототип</span>
+            GigaQifa <span className="text-primary">Прототип</span>
           </h1>
           <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-secondary">
             {t('header_subtitle')}
