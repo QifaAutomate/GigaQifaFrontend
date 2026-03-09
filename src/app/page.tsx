@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { AppHeader } from "@/components/app-header"
 import { ChatInterface } from "@/components/chat-interface"
 import { FileDropzone, AttachedFile } from "@/components/file-dropzone"
@@ -9,10 +9,31 @@ import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarGroup, 
 import { MessageSquare, Clock, Zap, Database, ChevronRight, Languages } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import { Button } from "@/components/ui/button"
+import { AgentService } from "@/services/agent-service"
+import { AgentStatus } from "@/services/types"
 
 export default function Home() {
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
+  const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>([])
   const { t, lang, setLang } = useLanguage()
+
+  // Пример "живого" получения статусов агентов через созданный сервис
+  useEffect(() => {
+    async function fetchStatuses() {
+      const { data } = await AgentService.getAgentsStatus()
+      if (data) {
+        setAgentStatuses(data)
+      } else {
+        // Заглушка, если бэкенд еще не подключен
+        setAgentStatuses([
+          { id: '1', name: t('analyst_agent'), status: 'online', lastActive: '' },
+          { id: '2', name: t('data_harvester'), status: 'online', lastActive: '' },
+          { id: '3', name: t('validation_expert'), status: 'idle', lastActive: '' },
+        ])
+      }
+    }
+    fetchStatuses()
+  }, [t])
 
   const clearFiles = () => setAttachedFiles([])
 
@@ -23,7 +44,7 @@ export default function Home() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full bg-background overflow-hidden">
-        {/* Left Sidebar for Navigation/History */}
+        {/* Left Sidebar */}
         <Sidebar className="border-r">
           <SidebarHeader className="h-20 flex items-center px-6">
             <div className="flex items-center gap-2">
@@ -80,12 +101,11 @@ export default function Home() {
           </SidebarFooter>
         </Sidebar>
 
-        {/* Main Content Area */}
+        {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 h-screen">
           <AppHeader />
           
           <main className="flex-1 flex flex-row p-6 gap-6 overflow-hidden">
-            {/* Chat Column (approx 70%) */}
             <div className="flex-[7] flex flex-col min-h-0">
               <ChatInterface 
                 attachedFiles={attachedFiles} 
@@ -93,7 +113,6 @@ export default function Home() {
               />
             </div>
 
-            {/* Context/Files Column (approx 30%) */}
             <div className="flex-[3] flex flex-col gap-6 min-h-0 overflow-y-auto">
               <section className="bg-white rounded-2xl p-6 shadow-lg border">
                 <h3 className="text-sm font-bold flex items-center gap-2 mb-4 text-primary">
@@ -115,18 +134,18 @@ export default function Home() {
                   {t('agent_status')}
                 </h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium">{t('analyst_agent')}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 bg-chart-2/10 text-chart-2 rounded-full uppercase">{t('online')}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium">{t('data_harvester')}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 bg-chart-2/10 text-chart-2 rounded-full uppercase">{t('online')}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium">{t('validation_expert')}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 bg-secondary/10 text-secondary rounded-full uppercase">{t('idle')}</span>
-                  </div>
+                  {agentStatuses.map((agent) => (
+                    <div key={agent.id} className="flex items-center justify-between">
+                      <span className="text-xs font-medium">{agent.name}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                        agent.status === 'online' ? 'bg-chart-2/10 text-chart-2' : 
+                        agent.status === 'idle' ? 'bg-secondary/10 text-secondary' : 
+                        'bg-muted text-muted-foreground'
+                      }`}>
+                        {agent.status === 'online' ? t('online') : agent.status === 'idle' ? t('idle') : 'Offline'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </section>
             </div>
