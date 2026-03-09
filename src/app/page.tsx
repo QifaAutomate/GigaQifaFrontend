@@ -1,6 +1,7 @@
+
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { AppHeader } from "@/components/app-header"
 import { ChatInterface } from "@/components/chat-interface"
 import { FileDropzone, AttachedFile } from "@/components/file-dropzone"
@@ -12,18 +13,21 @@ import { AgentStatus, AgentStatusCode } from "@/services/types"
 
 export default function Home() {
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
-  const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>([])
   const { t, lang, setLang } = useLanguage()
 
-  // Инициализация агентов в состоянии "Не в сети"
+  // Мемоизируем начальный список агентов, чтобы избежать лишних ререндеров
+  const initialAgents = useMemo(() => [
+    { id: 'consultant', name: t('consultant_agent'), status: 'offline' as const, lastActive: '' },
+    { id: 'parser', name: t('parser_agent'), status: 'offline' as const, lastActive: '' },
+    { id: 'validator', name: t('validation_expert'), status: 'offline' as const, lastActive: '' },
+  ], [t]);
+
+  const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>(initialAgents)
+
+  // Синхронизируем имена агентов при смене языка
   useEffect(() => {
-    const initialAgents: AgentStatus[] = [
-      { id: 'consultant', name: t('consultant_agent'), status: 'offline', lastActive: '' },
-      { id: 'parser', name: t('parser_agent'), status: 'offline', lastActive: '' },
-      { id: 'validator', name: t('validation_expert'), status: 'offline', lastActive: '' },
-    ]
     setAgentStatuses(initialAgents)
-  }, [t])
+  }, [initialAgents])
 
   const clearFiles = () => setAttachedFiles([])
 
