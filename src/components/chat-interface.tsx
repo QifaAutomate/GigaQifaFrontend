@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useRef, useEffect } from "react"
@@ -14,6 +13,7 @@ import { useLanguage } from "@/context/language-context"
 interface Message {
   role: "user" | "assistant"
   content: string
+  files?: AttachedFile[]
 }
 
 interface ChatInterfaceProps {
@@ -29,19 +29,19 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Initialize welcome message when translations are available
+  // Initialize welcome message
   useEffect(() => {
-    setMessages([
-      { role: "assistant", content: t('chat_welcome') }
-    ])
-  }, [t])
+    if (messages.length === 0) {
+      setMessages([
+        { role: "assistant", content: t('chat_welcome') }
+      ])
+    }
+  }, [t, messages.length])
 
-  // Function to scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  // Scroll whenever messages or loading state changes
   useEffect(() => {
     scrollToBottom()
   }, [messages, isLoading])
@@ -49,21 +49,29 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
   const handleSend = async () => {
     if (!input.trim() && attachedFiles.length === 0) return
 
-    const userMessage: Message = { role: "user", content: input }
+    const currentFiles = [...attachedFiles]
+    const userMessage: Message = { 
+      role: "user", 
+      content: input,
+      files: currentFiles.length > 0 ? currentFiles : undefined
+    }
+    
     setMessages(prev => [...prev, userMessage])
     setInput("")
     setIsLoading(true)
+    
+    // Clear files immediately after adding to message history to avoid double sending
+    if (currentFiles.length > 0) {
+      clearFiles()
+    }
 
     try {
       const result = await receiveAgentNetworkResponses({
         query: input,
-        files: attachedFiles.length > 0 ? attachedFiles : undefined
+        files: currentFiles.length > 0 ? currentFiles : undefined
       })
       
       setMessages(prev => [...prev, { role: "assistant", content: result.response }])
-      if (attachedFiles.length > 0) {
-        clearFiles()
-      }
     } catch (error) {
       setMessages(prev => [...prev, { role: "assistant", content: t('chat_error') }])
     } finally {
@@ -83,7 +91,7 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
       <ScrollArea className="flex-1 p-4">
         <div className="max-w-4xl mx-auto space-y-2">
           {messages.map((m, i) => (
-            <ChatMessage key={i} role={m.role} content={m.content} />
+            <ChatMessage key={i} role={m.role} content={m.content} files={m.files} />
           ))}
           {isLoading && (
             <div className="flex gap-4 p-6">
@@ -99,7 +107,6 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
               </div>
             </div>
           )}
-          {/* Dummy element to scroll to */}
           <div ref={messagesEndRef} className="h-4" />
         </div>
       </ScrollArea>

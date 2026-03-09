@@ -1,19 +1,20 @@
-
 "use client"
 
 import React from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Copy, Check, User, Bot } from "lucide-react"
+import { Copy, Check, User, Bot, FileText, FileSpreadsheet, File as FileIcon } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/context/language-context"
+import { AttachedFile } from "./file-dropzone"
 
 interface ChatMessageProps {
   role: "user" | "assistant"
   content: string
+  files?: AttachedFile[]
 }
 
-export function ChatMessage({ role, content }: ChatMessageProps) {
+export function ChatMessage({ role, content, files }: ChatMessageProps) {
   const [copied, setCopied] = React.useState(false)
   const { toast } = useToast()
   const { t } = useLanguage()
@@ -30,6 +31,14 @@ export function ChatMessage({ role, content }: ChatMessageProps) {
         description: t('copy_failed_desc')
       })
     }
+  }
+
+  const getFileIcon = (mime: string) => {
+    if (mime.includes("pdf")) return <FileText size={14} className="text-destructive" />
+    if (mime.includes("spreadsheet") || mime.includes("excel") || mime.includes("csv")) 
+      return <FileSpreadsheet size={14} className="text-chart-2" />
+    if (mime.includes("image")) return <FileIcon size={14} className="text-primary" />
+    return <FileIcon size={14} className="text-muted-foreground" />
   }
 
   return (
@@ -63,6 +72,17 @@ export function ChatMessage({ role, content }: ChatMessageProps) {
         <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
           {content}
         </div>
+        
+        {files && files.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {files.map((file, idx) => (
+              <div key={idx} className="flex items-center gap-2 px-2 py-1 bg-white/50 border rounded-md text-[10px] font-medium shadow-sm">
+                {getFileIcon(file.mimeType)}
+                <span className="truncate max-w-[150px]">{file.fileName}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

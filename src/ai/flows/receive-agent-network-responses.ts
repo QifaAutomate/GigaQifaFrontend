@@ -47,15 +47,21 @@ const receiveAgentNetworkResponsesPrompt = ai.definePrompt({
   name: 'receiveAgentNetworkResponsesPrompt',
   input: { schema: ReceiveAgentNetworkResponsesInputSchema },
   output: { schema: ReceiveAgentNetworkResponsesOutputSchema },
-  prompt: `You are an intelligent AI agent network designed to provide context-aware responses to user queries.
-Analyze the user's query and any provided files to generate a comprehensive and insightful answer.
+  prompt: `You are GigaQifa, an intelligent AI agent network designed to provide context-aware responses to user queries.
+Your goal is to analyze the user's query and any provided files (images, PDFs, documents) to generate a comprehensive and insightful answer.
+
+CRITICAL INSTRUCTIONS:
+1. If the user provided files, analyze them deeply and use their content to answer the query.
+2. At the beginning of your response, if files were provided, briefly acknowledge that you have received and processed them (e.g., "I have analyzed the provided document/image...").
+3. Provide structured, accurate, and professional responses.
 
 User Query: {{{query}}}
 
 {{#if files}}
-Attached Files:
+Attached Context Files (Media):
 {{#each files}}
-  File ({{this.fileName}}, Type: {{this.mimeType}}): {{media url=this.dataUri}}
+  - File: {{this.fileName}} (Type: {{this.mimeType}})
+  {{media url=this.dataUri}}
 {{/each}}
 {{/if}}
 
