@@ -8,7 +8,6 @@ import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarGroup, 
 import { MessageSquare, Clock, Zap, Database, ChevronRight, Languages, Loader2 } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import { Button } from "@/components/ui/button"
-import { AgentService } from "@/services/agent-service"
 import { AgentStatus, AgentStatusCode } from "@/services/types"
 
 export default function Home() {
@@ -16,31 +15,14 @@ export default function Home() {
   const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>([])
   const { t, lang, setLang } = useLanguage()
 
-  // Инициализация и симуляция реальной активности агентов
+  // Инициализация агентов в состоянии "Не в сети", так как бэкенд еще не подключен
   useEffect(() => {
     const initialAgents: AgentStatus[] = [
-      { id: '1', name: t('analyst_agent'), status: 'idle', lastActive: '' },
-      { id: '2', name: t('data_harvester'), status: 'idle', lastActive: '' },
-      { id: '3', name: t('validation_expert'), status: 'idle', lastActive: '' },
+      { id: '1', name: t('analyst_agent'), status: 'offline', lastActive: '' },
+      { id: '2', name: t('data_harvester'), status: 'offline', lastActive: '' },
+      { id: '3', name: t('validation_expert'), status: 'offline', lastActive: '' },
     ]
     setAgentStatuses(initialAgents)
-
-    const interval = setInterval(() => {
-      setAgentStatuses(prev => prev.map(agent => {
-        const random = Math.random()
-        let newStatus: AgentStatusCode = agent.status
-
-        // Логика симуляции "живого" бэкенда
-        if (random > 0.8) newStatus = 'thinking'
-        else if (random > 0.6) newStatus = 'searching'
-        else if (random > 0.4) newStatus = 'idle'
-        else if (random > 0.2) newStatus = 'online'
-        
-        return { ...agent, status: newStatus }
-      }))
-    }, 3000)
-
-    return () => clearInterval(interval)
   }, [t])
 
   const clearFiles = () => setAttachedFiles([])
@@ -55,6 +37,7 @@ export default function Home() {
       case 'searching': return 'bg-secondary/10 text-secondary border-secondary/20'
       case 'validating': return 'bg-purple-100 text-purple-600 border-purple-200'
       case 'online': return 'bg-chart-2/10 text-chart-2 border-chart-2/20'
+      case 'offline': return 'bg-destructive/10 text-destructive border-destructive/20'
       case 'idle': return 'bg-muted text-muted-foreground border-transparent'
       default: return 'bg-muted text-muted-foreground'
     }
@@ -66,6 +49,7 @@ export default function Home() {
       case 'searching': return t('searching')
       case 'validating': return t('validating')
       case 'online': return t('online')
+      case 'offline': return t('offline')
       case 'idle': return t('idle')
       default: return status
     }
@@ -135,7 +119,7 @@ export default function Home() {
         <div className="flex-1 flex flex-col min-w-0 h-screen">
           <AppHeader />
           
-          <main className="flex-1 flex flex-row p-6 gap-6 overflow-hidden">
+          <main className="flex-1 p-6 flex flex-row gap-6 overflow-hidden">
             <div className="flex-[7] flex flex-col min-h-0">
               <ChatInterface 
                 attachedFiles={attachedFiles} 
