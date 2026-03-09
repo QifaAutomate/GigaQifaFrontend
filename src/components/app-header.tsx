@@ -13,13 +13,13 @@ export function AppHeader() {
   return (
     <header className="flex h-20 w-full items-center justify-between px-8 bg-white/80 backdrop-blur-md border-b sticky top-0 z-50">
       <div className="flex items-center gap-4">
-        <div className="relative h-12 w-12 rounded-xl overflow-hidden border shadow-sm">
+        <div className="relative h-12 w-12 rounded-xl overflow-hidden border shadow-sm bg-white">
           <Image
             src={logo?.imageUrl || ""}
             alt="Logo"
             fill
-            className="object-cover"
-            data-ai-hint="abstract tech logo"
+            className="object-contain p-1"
+            data-ai-hint="colorful circular logo"
           />
         </div>
         <div>
