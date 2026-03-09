@@ -47,12 +47,32 @@ const receiveAgentNetworkResponsesPrompt = ai.definePrompt({
   name: 'receiveAgentNetworkResponsesPrompt',
   input: { schema: ReceiveAgentNetworkResponsesInputSchema },
   output: { schema: ReceiveAgentNetworkResponsesOutputSchema },
+  config: {
+    safetySettings: [
+      {
+        category: 'HARM_CATEGORY_HATE_SPEECH',
+        threshold: 'BLOCK_ONLY_HIGH',
+      },
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_NONE',
+      },
+      {
+        category: 'HARM_CATEGORY_HARASSMENT',
+        threshold: 'BLOCK_ONLY_HIGH',
+      },
+      {
+        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+        threshold: 'BLOCK_ONLY_HIGH',
+      },
+    ],
+  },
   prompt: `You are GigaQifa, an intelligent AI agent network designed to provide context-aware responses to user queries.
 Your goal is to analyze the user's query and any provided files (images, PDFs, documents) to generate a comprehensive and insightful answer.
 
 CRITICAL INSTRUCTIONS:
 1. If the user provided files, analyze them deeply and use their content to answer the query.
-2. At the beginning of your response, if files were provided, briefly acknowledge that you have received and processed them (e.g., "I have analyzed the provided document/image...").
+2. At the beginning of your response, if files were provided, briefly acknowledge that you have received and processed them (e.g., "Я проанализировал предоставленные файлы/изображения...").
 3. Provide structured, accurate, and professional responses.
 
 User Query: {{{query}}}
