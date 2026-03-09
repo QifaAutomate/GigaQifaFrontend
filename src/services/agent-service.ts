@@ -1,6 +1,6 @@
 /**
- * @fileOverview Сервис для работы с агентами и историей чатов.
- * Использует apiClient для выполнения запросов.
+ * @fileOverview Модульный сервис для работы с конкретными ИИ-агентами.
+ * Реализован с возможностью подключения независимых бэкендов для каждого модуля.
  */
 
 import { apiClient } from './api-client';
@@ -8,31 +8,39 @@ import { AgentStatus, ChatSession, MessageRequest, MessageResponse } from './typ
 
 export const AgentService = {
   /**
-   * Получение текущего статуса всех агентов в сети.
+   * Получение статуса всех модулей. 
+   * Бэкенд на Python может агрегировать эти данные из разных микросервисов.
    */
   getAgentsStatus: () => 
-    apiClient.get<AgentStatus[]>('/agents/status'),
+    apiClient.get<AgentStatus[]>('/orchestrator/status'),
 
   /**
-   * Получение истории последних сессий пользователя.
+   * Получение статуса конкретного агента (модуля).
+   * @param agentId 'consultant' | 'parser' | 'validator'
+   */
+  getSingleAgentStatus: (agentId: string) =>
+    apiClient.get<AgentStatus>(`/agents/${agentId}/status`),
+
+  /**
+   * Получение истории последних сессий.
    */
   getRecentHistory: () => 
     apiClient.get<ChatSession[]>('/history/recent'),
 
   /**
-   * Отправка запроса в нейронную сеть агентов.
+   * Отправка запроса в общую сеть. 
+   * Orchestrator на Python сам решит, какие агенты должны участвовать.
    */
   processQuery: (payload: MessageRequest) => 
-    apiClient.post<MessageResponse>('/chat/process', payload),
+    apiClient.post<MessageResponse>('/orchestrator/process', payload),
 
   /**
-   * Загрузка файла для контекста (возвращает ID файла).
+   * Загрузка файла для контекста.
    */
   uploadContextFile: (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
     return apiClient.post<{ fileId: string }>('/files/upload', formData, {
-      // Переопределяем headers для FormData, так как fetch сам выставит нужный boundary
       headers: { 'Content-Type': 'multipart/form-data' } as any
     });
   }

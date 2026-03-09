@@ -15,12 +15,12 @@ export default function Home() {
   const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>([])
   const { t, lang, setLang } = useLanguage()
 
-  // Инициализация агентов в состоянии "Не в сети", так как бэкенд еще не подключен
+  // Инициализация агентов в состоянии "Не в сети"
   useEffect(() => {
     const initialAgents: AgentStatus[] = [
-      { id: '1', name: t('analyst_agent'), status: 'offline', lastActive: '' },
-      { id: '2', name: t('data_harvester'), status: 'offline', lastActive: '' },
-      { id: '3', name: t('validation_expert'), status: 'offline', lastActive: '' },
+      { id: 'consultant', name: t('consultant_agent'), status: 'offline', lastActive: '' },
+      { id: 'parser', name: t('parser_agent'), status: 'offline', lastActive: '' },
+      { id: 'validator', name: t('validation_expert'), status: 'offline', lastActive: '' },
     ]
     setAgentStatuses(initialAgents)
   }, [t])
