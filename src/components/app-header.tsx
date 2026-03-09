@@ -3,10 +3,12 @@
 
 import Image from "next/image"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
-import { LayoutGrid, Bell, Settings } from "lucide-react"
+import { Bell, Settings } from "lucide-react"
+import { useLanguage } from "@/context/language-context"
 
 export function AppHeader() {
   const logo = PlaceHolderImages.find(img => img.id === "app-logo")
+  const { t } = useLanguage()
 
   return (
     <header className="flex h-20 w-full items-center justify-between px-8 bg-white/80 backdrop-blur-md border-b sticky top-0 z-50">
@@ -25,7 +27,7 @@ export function AppHeader() {
             AgentConnect <span className="text-primary">Console</span>
           </h1>
           <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-secondary">
-            Enterprise Agent Network
+            {t('header_subtitle')}
           </p>
         </div>
       </div>

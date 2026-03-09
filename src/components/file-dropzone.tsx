@@ -5,6 +5,7 @@ import React, { useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Upload, X, FileText, FileSpreadsheet, File as FileIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/context/language-context"
 
 export interface AttachedFile {
   dataUri: string
@@ -19,6 +20,7 @@ interface FileDropzoneProps {
 
 export function FileDropzone({ files, onFilesChange }: FileDropzoneProps) {
   const { toast } = useToast()
+  const { t } = useLanguage()
 
   const handleFile = useCallback(async (file: File) => {
     const reader = new FileReader()
@@ -75,10 +77,10 @@ export function FileDropzone({ files, onFilesChange }: FileDropzoneProps) {
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-foreground">
-            Drop context files here
+            {t('dropzone_title')}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Support PDF, Excel, and more
+            {t('dropzone_subtitle')}
           </p>
         </div>
         <input
@@ -95,7 +97,7 @@ export function FileDropzone({ files, onFilesChange }: FileDropzoneProps) {
           htmlFor="file-upload"
           className="mt-4 px-4 py-2 text-xs font-medium bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90 transition-colors"
         >
-          Browse Files
+          {t('dropzone_browse')}
         </label>
       </div>
 

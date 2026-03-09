@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Copy, Check, User, Bot } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/context/language-context"
 
 interface ChatMessageProps {
   role: "user" | "assistant"
@@ -15,6 +16,7 @@ interface ChatMessageProps {
 export function ChatMessage({ role, content }: ChatMessageProps) {
   const [copied, setCopied] = React.useState(false)
   const { toast } = useToast()
+  const { t } = useLanguage()
 
   const copyToClipboard = async () => {
     try {
@@ -24,8 +26,8 @@ export function ChatMessage({ role, content }: ChatMessageProps) {
     } catch (err) {
       toast({
         variant: "destructive",
-        title: "Copy failed",
-        description: "Could not copy response to clipboard."
+        title: t('copy_failed'),
+        description: t('copy_failed_desc')
       })
     }
   }
@@ -45,7 +47,7 @@ export function ChatMessage({ role, content }: ChatMessageProps) {
       <div className="flex flex-1 flex-col gap-2 overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {role === "user" ? "You" : "AI Agent Network"}
+            {role === "user" ? t('you') : t('ai_network')}
           </span>
           {role === "assistant" && (
             <Button

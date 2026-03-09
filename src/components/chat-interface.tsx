@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Send, Loader2 } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useLanguage } from "@/context/language-context"
 
 interface Message {
   role: "user" | "assistant"
@@ -21,12 +22,19 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hello! I am your AI Agent Network. How can I assist you today? You can drop files in the right panel to provide me with more context." }
-  ])
+  const { t } = useLanguage()
+  
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Initialize welcome message when translations are available
+  useEffect(() => {
+    setMessages([
+      { role: "assistant", content: t('chat_welcome') }
+    ])
+  }, [t])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -53,7 +61,7 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
         clearFiles()
       }
     } catch (error) {
-      setMessages(prev => [...prev, { role: "assistant", content: "I'm sorry, I encountered an error while processing your request. Please try again." }])
+      setMessages(prev => [...prev, { role: "assistant", content: t('chat_error') }])
     } finally {
       setIsLoading(false)
     }
@@ -96,7 +104,7 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Type your query to the agent network..."
+            placeholder={t('chat_placeholder')}
             className="min-h-[100px] pr-16 bg-white border-2 border-transparent focus-visible:border-primary transition-all resize-none shadow-sm rounded-xl"
           />
           <Button
@@ -109,7 +117,7 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
           </Button>
         </div>
         <p className="text-[10px] text-center text-muted-foreground mt-2">
-          AgentConnect Console can analyze complex documents using advanced AI agents.
+          {t('chat_disclaimer')}
         </p>
       </div>
     </div>
