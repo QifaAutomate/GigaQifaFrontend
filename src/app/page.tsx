@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect } from "react"
@@ -6,39 +5,70 @@ import { AppHeader } from "@/components/app-header"
 import { ChatInterface } from "@/components/chat-interface"
 import { FileDropzone, AttachedFile } from "@/components/file-dropzone"
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar"
-import { MessageSquare, Clock, Zap, Database, ChevronRight, Languages } from "lucide-react"
+import { MessageSquare, Clock, Zap, Database, ChevronRight, Languages, Loader2 } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import { Button } from "@/components/ui/button"
 import { AgentService } from "@/services/agent-service"
-import { AgentStatus } from "@/services/types"
+import { AgentStatus, AgentStatusCode } from "@/services/types"
 
 export default function Home() {
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
   const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>([])
   const { t, lang, setLang } = useLanguage()
 
-  // Пример "живого" получения статусов агентов через созданный сервис
+  // Инициализация и симуляция реальной активности агентов
   useEffect(() => {
-    async function fetchStatuses() {
-      const { data } = await AgentService.getAgentsStatus()
-      if (data) {
-        setAgentStatuses(data)
-      } else {
-        // Заглушка, если бэкенд еще не подключен
-        setAgentStatuses([
-          { id: '1', name: t('analyst_agent'), status: 'online', lastActive: '' },
-          { id: '2', name: t('data_harvester'), status: 'online', lastActive: '' },
-          { id: '3', name: t('validation_expert'), status: 'idle', lastActive: '' },
-        ])
-      }
-    }
-    fetchStatuses()
+    const initialAgents: AgentStatus[] = [
+      { id: '1', name: t('analyst_agent'), status: 'idle', lastActive: '' },
+      { id: '2', name: t('data_harvester'), status: 'idle', lastActive: '' },
+      { id: '3', name: t('validation_expert'), status: 'idle', lastActive: '' },
+    ]
+    setAgentStatuses(initialAgents)
+
+    const interval = setInterval(() => {
+      setAgentStatuses(prev => prev.map(agent => {
+        const random = Math.random()
+        let newStatus: AgentStatusCode = agent.status
+
+        // Логика симуляции "живого" бэкенда
+        if (random > 0.8) newStatus = 'thinking'
+        else if (random > 0.6) newStatus = 'searching'
+        else if (random > 0.4) newStatus = 'idle'
+        else if (random > 0.2) newStatus = 'online'
+        
+        return { ...agent, status: newStatus }
+      }))
+    }, 3000)
+
+    return () => clearInterval(interval)
   }, [t])
 
   const clearFiles = () => setAttachedFiles([])
 
   const toggleLanguage = () => {
     setLang(lang === 'ru' ? 'en' : 'ru')
+  }
+
+  const getStatusColor = (status: AgentStatusCode) => {
+    switch (status) {
+      case 'thinking': return 'bg-primary/10 text-primary border-primary/20'
+      case 'searching': return 'bg-secondary/10 text-secondary border-secondary/20'
+      case 'validating': return 'bg-purple-100 text-purple-600 border-purple-200'
+      case 'online': return 'bg-chart-2/10 text-chart-2 border-chart-2/20'
+      case 'idle': return 'bg-muted text-muted-foreground border-transparent'
+      default: return 'bg-muted text-muted-foreground'
+    }
+  }
+
+  const getStatusLabel = (status: AgentStatusCode) => {
+    switch (status) {
+      case 'thinking': return t('thinking')
+      case 'searching': return t('searching')
+      case 'validating': return t('validating')
+      case 'online': return t('online')
+      case 'idle': return t('idle')
+      default: return status
+    }
   }
 
   return (
@@ -135,14 +165,18 @@ export default function Home() {
                 </h3>
                 <div className="space-y-4">
                   {agentStatuses.map((agent) => (
-                    <div key={agent.id} className="flex items-center justify-between">
-                      <span className="text-xs font-medium">{agent.name}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                        agent.status === 'online' ? 'bg-chart-2/10 text-chart-2' : 
-                        agent.status === 'idle' ? 'bg-secondary/10 text-secondary' : 
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {agent.status === 'online' ? t('online') : agent.status === 'idle' ? t('idle') : 'Offline'}
+                    <div key={agent.id} className="flex items-center justify-between p-2 rounded-xl bg-white/40 border border-white/60">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold">{agent.name}</span>
+                        {(agent.status === 'thinking' || agent.status === 'searching') && (
+                          <span className="text-[10px] text-primary flex items-center gap-1">
+                            <Loader2 size={10} className="animate-spin" />
+                            {agent.status === 'thinking' ? 'Processing...' : 'Fetching...'}
+                          </span>
+                        )}
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-colors ${getStatusColor(agent.status)}`}>
+                        {getStatusLabel(agent.status)}
                       </span>
                     </div>
                   ))}

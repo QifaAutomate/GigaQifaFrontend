@@ -1,12 +1,14 @@
 /**
  * @fileOverview Определения типов данных (моделей), соответствующих схемам бэкенда.
- * При использовании Swagger эти типы можно генерировать автоматически.
+ * Для Python-разработчиков: Эти интерфейсы соответствуют вашим Pydantic моделям в FastAPI.
  */
+
+export type AgentStatusCode = 'online' | 'idle' | 'offline' | 'thinking' | 'searching' | 'validating';
 
 export interface AgentStatus {
   id: string;
   name: string;
-  status: 'online' | 'idle' | 'offline';
+  status: AgentStatusCode;
   lastActive: string;
 }
 

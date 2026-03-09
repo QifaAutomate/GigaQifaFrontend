@@ -1,39 +1,52 @@
-# Интеграция с бэкендом (AgentConnect Console)
+# Интеграция с Python-бэкендом (FastAPI)
 
-Данный проект использует модульную архитектуру для связи с внешними API. Все коннекторы расположены в папке `src/services`.
+Этот фронтенд разработан с учетом легкой интеграции с бэкендом на Python. Мы рекомендуем использовать **FastAPI**, так как он автоматически генерирует Swagger (OpenAPI) и идеально подходит для работы с LLM и асинхронными задачами.
 
-## 1. Структура слоев
-- `api-client.ts`: Базовая обертка над `fetch`. Обрабатывает базовый URL, заголовки и типизацию ответов.
-- `agent-service.ts`: Доменная логика. Содержит методы для работы с конкретными эндпоинтами.
-- `types.ts`: TypeScript интерфейсы, описывающие структуру данных бэкенда.
+## 1. Рекомендуемый стек на Python
+- **Framework**: `FastAPI`
+- **Data Models**: `Pydantic` (типы в `src/services/types.ts` уже соответствуют структуре Pydantic)
+- **CORS**: Обязательно разрешите запросы с фронтенда:
+  ```python
+  from fastapi.middleware.cors import CORSMiddleware
+  app.add_middleware(CORSMiddleware, allow_origins=["*"], ...)
+  ```
 
-## 2. Использование Swagger (OpenAPI)
-Для автоматизации процесса рекомендуется генерировать типы и методы API прямо из Swagger-спецификации вашего бэкенда.
+## 2. Интеграция через Swagger (OpenAPI)
+FastAPI по умолчанию создает документацию по адресу `/docs`. 
 
-### Рекомендуемый инструмент: `openapi-typescript`
-1. Установите библиотеку: `npm install -D openapi-typescript`
-2. Добавьте скрипт в `package.json`:
-   ```json
-   "generate-api": "npx openapi-typescript https://api.example.com/swagger.json -o src/services/schema.d.ts"
-   ```
-3. После запуска команды вы получите файл `schema.d.ts` со всеми типами вашего API.
+Для автоматической генерации TypeScript клиентов из вашего Python-кода используйте:
+`npx openapi-typescript http://127.0.0.1:8000/openapi.json -o src/services/schema.d.ts`
 
-### Рекомендуемый инструмент: `swagger-typescript-api`
-Если вы хотите генерировать не только типы, но и готовые классы запросов:
-`npx swagger-typescript-api -p https://api.example.com/swagger.json -o src/services -n my-api.ts`
+## 3. Динамические статусы агентов
+Фронтенд ожидает, что каждый агент может находиться в одном из следующих состояний:
+- `online`: В сети, готов к работе.
+- `idle`: Ожидание (режим сна).
+- `thinking`: Агент обрабатывает запрос (LLM генерирует текст).
+- `searching`: Агент ищет информацию в базе данных или интернете.
+- `validating`: Агент проверяет корректность полученных данных.
 
-## 3. Методология разработки
-- **Environment Variables**: Всегда используйте `process.env.NEXT_PUBLIC_API_URL` для смены адреса сервера (dev/prod).
-- **Error Handling**: `api-client.ts` возвращает объект `{ data, error, status }`. Всегда проверяйте наличие `error` перед использованием данных.
-- **DTO (Data Transfer Objects)**: Если формат данных бэкенда сильно отличается от того, что нужно UI, создавайте функции-мапперы в папке `src/services/mappers`.
+## 4. Пример эндпоинта на FastAPI
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List, Optional
 
-## 4. Пример подключения в компоненте
-```tsx
-import { AgentService } from '@/services/agent-service';
+app = FastAPI()
 
-// Внутри useEffect или функции:
-const { data, error } = await AgentService.getAgentsStatus();
-if (data) {
-  setStatuses(data);
-}
+class AgentStatus(BaseModel):
+    id: str
+    name: str
+    status: str # 'thinking', 'searching', 'online', etc.
+    lastActive: str
+
+@app.get("/api/v1/agents/status", response_model=List[AgentStatus])
+async def get_status():
+    return [
+        {"id": "1", "name": "Консультант", "status": "thinking", "lastActive": "2023-10-27T10:00:00"},
+        {"id": "2", "name": "Сборщик данных", "status": "searching", "lastActive": "2023-10-27T10:01:00"}
+    ]
 ```
+
+## 5. Настройка переменных окружения
+Создайте файл `.env` в корне проекта и укажите адрес вашего Python-сервера:
+`NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1`
