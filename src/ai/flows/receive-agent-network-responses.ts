@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow for processing user queries
@@ -51,7 +52,7 @@ const receiveAgentNetworkResponsesPrompt = ai.definePrompt({
     safetySettings: [
       {
         category: 'HARM_CATEGORY_HATE_SPEECH',
-        threshold: 'BLOCK_ONLY_HIGH',
+        threshold: 'BLOCK_NONE',
       },
       {
         category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
@@ -59,11 +60,11 @@ const receiveAgentNetworkResponsesPrompt = ai.definePrompt({
       },
       {
         category: 'HARM_CATEGORY_HARASSMENT',
-        threshold: 'BLOCK_ONLY_HIGH',
+        threshold: 'BLOCK_NONE',
       },
       {
         category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-        threshold: 'BLOCK_ONLY_HIGH',
+        threshold: 'BLOCK_NONE',
       },
     ],
   },
@@ -96,10 +97,15 @@ const receiveAgentNetworkResponsesFlow = ai.defineFlow(
     outputSchema: ReceiveAgentNetworkResponsesOutputSchema,
   },
   async (input) => {
-    const { output } = await receiveAgentNetworkResponsesPrompt(input);
-    if (!output) {
-      throw new Error('AI agent network did not provide a response.');
+    try {
+      const { output } = await receiveAgentNetworkResponsesPrompt(input);
+      if (!output) {
+        throw new Error('AI agent network did not provide a response.');
+      }
+      return output;
+    } catch (error) {
+      console.error('Error in receiveAgentNetworkResponsesFlow:', error);
+      throw error;
     }
-    return output;
   }
 );

@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useRef, useEffect } from "react"
@@ -39,7 +40,9 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
   }, [t, messages.length])
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
   }
 
   useEffect(() => {
@@ -73,6 +76,7 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
       
       setMessages(prev => [...prev, { role: "assistant", content: result.response }])
     } catch (error) {
+      console.error('Chat error:', error)
       setMessages(prev => [...prev, { role: "assistant", content: t('chat_error') }])
     } finally {
       setIsLoading(false)
