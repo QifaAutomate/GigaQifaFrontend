@@ -25,7 +25,7 @@ export function AppHeader() {
         </div>
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground leading-tight">
-            GigaQifa <span className="text-primary">Прототип</span>
+            GigaQifa
           </h1>
           <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-secondary">
             {t('header_subtitle')}
