@@ -32,7 +32,7 @@ export default function Home() {
   const clearFiles = () => setAttachedFiles([])
 
   const toggleLanguage = () => {
-    setLang(lang === 'ru' ? 'en' : 'ru')
+    setLang(lang === 'ru' ? 'zh' : 'ru')
   }
 
   const getStatusColor = (status: AgentStatusCode) => {
@@ -114,7 +114,7 @@ export default function Home() {
               onClick={toggleLanguage}
             >
               <Languages size={16} />
-              <span>{lang === 'ru' ? 'English' : 'Русский'}</span>
+              <span>{lang === 'ru' ? '中文 (简体)' : 'Русский'}</span>
             </Button>
           </SidebarFooter>
         </Sidebar>

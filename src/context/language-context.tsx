@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { translations, TranslationKey } from './translations';
 
-type Language = 'en' | 'ru';
+type Language = 'zh' | 'ru';
 
 type LanguageContextType = {
   lang: Language;
@@ -18,7 +18,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Language>('ru');
 
   const t = useCallback((key: TranslationKey) => {
-    return translations[lang][key] || translations.en[key];
+    return translations[lang][key] || translations.zh[key];
   }, [lang]);
 
   return (
