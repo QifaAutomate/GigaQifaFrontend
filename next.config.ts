@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '20mb',
     },
   },
+  // Разрешаем запросы из облачной среды разработки для корректной работы HMR
+  devIndicators: {
+    appIsrStatus: false,
+  },
   images: {
     remotePatterns: [
       {
