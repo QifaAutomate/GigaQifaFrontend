@@ -1,4 +1,3 @@
-
 export const translations = {
   zh: {
     console_version: "GigaQifa v2.4",
