@@ -3,6 +3,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* Опции конфигурации для VPS развертывания */
+  output: 'standalone', // Оптимизация для работы на сервере (Docker/PM2)
   typescript: {
     ignoreBuildErrors: true,
   },
