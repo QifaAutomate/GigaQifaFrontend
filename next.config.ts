@@ -2,7 +2,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  /* Опции конфигурации для VPS развертывания */
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -13,10 +13,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '20mb',
     },
-  },
-  // Разрешаем запросы из облачной среды разработки для корректной работы HMR
-  devIndicators: {
-    appIsrStatus: false,
   },
   images: {
     remotePatterns: [
