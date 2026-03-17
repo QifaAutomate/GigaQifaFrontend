@@ -176,32 +176,35 @@ export function ChatInterface() {
               multiple 
               onChange={handleFileSelection}
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-full shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/5"
-              onClick={() => fileInputRef.current?.click()}
-              title={t('attach_file')}
-            >
-              <Paperclip size={20} />
-            </Button>
-
+            
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
               placeholder={t('chat_placeholder')}
-              className="flex-1 min-h-[44px] max-h-[200px] border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent py-2 px-0 resize-none shadow-none text-sm"
+              className="flex-1 min-h-[44px] max-h-[400px] border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent py-2 px-0 resize-y shadow-none text-sm"
             />
 
-            <Button
-              onClick={handleSend}
-              disabled={isLoading || (!input.trim() && attachedFiles.length === 0)}
-              className="h-9 w-9 rounded-full shrink-0 shadow-md"
-              size="icon"
-            >
-              {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-            </Button>
+            <div className="flex items-center gap-1 mb-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-full shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/5"
+                onClick={() => fileInputRef.current?.click()}
+                title={t('attach_file')}
+              >
+                <Paperclip size={20} />
+              </Button>
+
+              <Button
+                onClick={handleSend}
+                disabled={isLoading || (!input.trim() && attachedFiles.length === 0)}
+                className="h-9 w-9 rounded-full shrink-0 shadow-md"
+                size="icon"
+              >
+                {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+              </Button>
+            </div>
           </div>
         </div>
         <p className="text-[10px] text-center text-muted-foreground mt-2">
