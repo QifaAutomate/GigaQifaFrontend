@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect, useCallback } from "react"
 import { ChatMessage } from "./chat-message"
 import { AttachedFile } from "./file-dropzone"
 import { receiveAgentNetworkResponses } from "@/ai/flows/receive-agent-network-responses"
@@ -10,6 +10,7 @@ import { Send, Loader2, Paperclip, X, FileText, FileSpreadsheet, File as FileIco
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useLanguage } from "@/context/language-context"
 import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
 
 interface Message {
   role: "user" | "assistant"
@@ -25,8 +26,12 @@ export function ChatInterface() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
+  const [inputHeight, setInputHeight] = useState(60)
+  const [isResizing, setIsResizing] = useState(false)
+  
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const resizerRef = useRef<HTMLDivElement>(null)
 
   // Initialize welcome message
   useEffect(() => {
@@ -37,15 +42,44 @@ export function ChatInterface() {
     }
   }, [t, messages.length])
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
-  }
+  }, [])
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages, isLoading])
+  }, [messages, isLoading, scrollToBottom])
+
+  // Resizing logic
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+  }, [])
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false)
+  }, [])
+
+  const resize = useCallback((e: MouseEvent) => {
+    if (isResizing) {
+      const windowHeight = window.innerHeight
+      const newHeight = windowHeight - e.clientY - 120 // Offset for padding and buttons
+      if (newHeight >= 44 && newHeight <= 600) {
+        setInputHeight(newHeight)
+      }
+    }
+  }, [isResizing])
+
+  useEffect(() => {
+    window.addEventListener("mousemove", resize)
+    window.addEventListener("mouseup", stopResizing)
+    return () => {
+      window.removeEventListener("mousemove", resize)
+      window.removeEventListener("mouseup", stopResizing)
+    }
+  }, [resize, stopResizing])
 
   const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
@@ -70,7 +104,6 @@ export function ChatInterface() {
       reader.readAsDataURL(file)
     })
     
-    // Reset input
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
@@ -168,42 +201,57 @@ export function ChatInterface() {
             </div>
           )}
 
-          <div className="relative group flex items-end gap-2 bg-white border-2 border-transparent focus-within:border-primary transition-all shadow-sm rounded-2xl p-2 px-4">
-            <input 
-              type="file" 
-              className="hidden" 
-              ref={fileInputRef} 
-              multiple 
-              onChange={handleFileSelection}
+          <div 
+            className={cn(
+              "relative group flex flex-col bg-white border-2 transition-all shadow-sm rounded-2xl",
+              isResizing ? "border-primary" : "border-transparent focus-within:border-primary"
+            )}
+            style={{ height: `${inputHeight}px` }}
+          >
+            {/* Top Resize Handle */}
+            <div 
+              onMouseDown={startResizing}
+              className="absolute -top-1.5 left-0 right-0 h-3 cursor-ns-resize z-10 rounded-t-2xl hover:bg-primary/5 transition-colors"
+              title="Drag to resize"
             />
             
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
-              placeholder={t('chat_placeholder')}
-              className="flex-1 min-h-[44px] max-h-[400px] border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent py-2 px-0 resize-y shadow-none text-sm"
-            />
+            <div className="flex-1 flex items-end gap-2 p-2 px-4 overflow-hidden">
+              <input 
+                type="file" 
+                className="hidden" 
+                ref={fileInputRef} 
+                multiple 
+                onChange={handleFileSelection}
+              />
+              
+              <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                placeholder={t('chat_placeholder')}
+                className="flex-1 h-full border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent py-2 px-0 resize-none shadow-none text-sm"
+              />
 
-            <div className="flex items-center gap-1 mb-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/5"
-                onClick={() => fileInputRef.current?.click()}
-                title={t('attach_file')}
-              >
-                <Paperclip size={20} />
-              </Button>
+              <div className="flex items-center gap-1 mb-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 rounded-full shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/5"
+                  onClick={() => fileInputRef.current?.click()}
+                  title={t('attach_file')}
+                >
+                  <Paperclip size={20} />
+                </Button>
 
-              <Button
-                onClick={handleSend}
-                disabled={isLoading || (!input.trim() && attachedFiles.length === 0)}
-                className="h-9 w-9 rounded-full shrink-0 shadow-md"
-                size="icon"
-              >
-                {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-              </Button>
+                <Button
+                  onClick={handleSend}
+                  disabled={isLoading || (!input.trim() && attachedFiles.length === 0)}
+                  className="h-9 w-9 rounded-full shrink-0 shadow-md"
+                  size="icon"
+                >
+                  {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
