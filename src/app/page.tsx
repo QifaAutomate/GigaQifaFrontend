@@ -152,14 +152,14 @@ export default function Home() {
               <section className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl p-6 shadow-lg border">
                 <h3 className="text-sm font-bold flex items-center gap-2 mb-4 text-secondary">
                   <ShieldCheck size={16} />
-                  Security & Verification
+                  {t('security_title')}
                 </h3>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  All requests are processed through the corporate validation layer. Files attached to the chat are encrypted and used only for contextual grounding.
+                  {t('security_desc')}
                 </p>
                 <div className="mt-4 pt-4 border-t border-secondary/10">
                   <div className="flex items-center justify-between text-[10px] text-secondary font-bold uppercase tracking-wider">
-                    <span>Uptime</span>
+                    <span>{t('uptime')}</span>
                     <span>99.9%</span>
                   </div>
                 </div>
