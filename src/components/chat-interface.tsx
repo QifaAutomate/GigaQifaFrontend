@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useRef, useEffect } from "react"
@@ -7,9 +6,10 @@ import { AttachedFile } from "./file-dropzone"
 import { receiveAgentNetworkResponses } from "@/ai/flows/receive-agent-network-responses"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Send, Loader2 } from "lucide-react"
+import { Send, Loader2, Paperclip, X, FileText, FileSpreadsheet, File as FileIcon } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useLanguage } from "@/context/language-context"
+import { useToast } from "@/hooks/use-toast"
 
 interface Message {
   role: "user" | "assistant"
@@ -17,18 +17,16 @@ interface Message {
   files?: AttachedFile[]
 }
 
-interface ChatInterfaceProps {
-  attachedFiles: AttachedFile[]
-  clearFiles: () => void
-}
-
-export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps) {
+export function ChatInterface() {
   const { t } = useLanguage()
+  const { toast } = useToast()
   
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Initialize welcome message
   useEffect(() => {
@@ -49,28 +47,56 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
     scrollToBottom()
   }, [messages, isLoading])
 
+  const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || [])
+    
+    selectedFiles.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const dataUri = event.target?.result as string
+        setAttachedFiles(prev => [...prev, {
+          dataUri,
+          mimeType: file.type,
+          fileName: file.name
+        }])
+      }
+      reader.onerror = () => {
+        toast({
+          variant: "destructive",
+          title: "File Error",
+          description: `Failed to read ${file.name}`
+        })
+      }
+      reader.readAsDataURL(file)
+    })
+    
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
+
+  const removeAttachedFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
   const handleSend = async () => {
     if (!input.trim() && attachedFiles.length === 0) return
 
     const currentFiles = [...attachedFiles]
+    const currentInput = input
     const userMessage: Message = { 
       role: "user", 
-      content: input,
+      content: currentInput,
       files: currentFiles.length > 0 ? currentFiles : undefined
     }
     
     setMessages(prev => [...prev, userMessage])
     setInput("")
+    setAttachedFiles([])
     setIsLoading(true)
     
-    // Clear files immediately after adding to message history to avoid double sending
-    if (currentFiles.length > 0) {
-      clearFiles()
-    }
-
     try {
       const result = await receiveAgentNetworkResponses({
-        query: input,
+        query: currentInput,
         files: currentFiles.length > 0 ? currentFiles : undefined
       })
       
@@ -88,6 +114,13 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
       e.preventDefault()
       handleSend()
     }
+  }
+
+  const getFileIcon = (mime: string) => {
+    if (mime.includes("pdf")) return <FileText size={14} className="text-destructive" />
+    if (mime.includes("spreadsheet") || mime.includes("excel") || mime.includes("csv")) 
+      return <FileSpreadsheet size={14} className="text-chart-2" />
+    return <FileIcon size={14} className="text-primary" />
   }
 
   return (
@@ -116,22 +149,60 @@ export function ChatInterface({ attachedFiles, clearFiles }: ChatInterfaceProps)
       </ScrollArea>
 
       <div className="p-4 border-t bg-accent/10">
-        <div className="max-w-4xl mx-auto relative group">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder={t('chat_placeholder')}
-            className="min-h-[100px] pr-16 bg-white border-2 border-transparent focus-visible:border-primary transition-all resize-none shadow-sm rounded-xl"
-          />
-          <Button
-            onClick={handleSend}
-            disabled={isLoading || (!input.trim() && attachedFiles.length === 0)}
-            className="absolute right-3 bottom-3 h-10 w-10 rounded-full shadow-lg"
-            size="icon"
-          >
-            <Send size={18} />
-          </Button>
+        <div className="max-w-4xl mx-auto flex flex-col gap-2">
+          {/* Attached Files Preview Area */}
+          {attachedFiles.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2 animate-in fade-in slide-in-from-bottom-2">
+              {attachedFiles.map((file, idx) => (
+                <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-white border rounded-xl text-[11px] font-medium shadow-sm group">
+                  {getFileIcon(file.mimeType)}
+                  <span className="max-w-[120px] truncate">{file.fileName}</span>
+                  <button 
+                    onClick={() => removeAttachedFile(idx)}
+                    className="ml-1 text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="relative group flex items-end gap-2 bg-white border-2 border-transparent focus-within:border-primary transition-all shadow-sm rounded-2xl p-2 px-4">
+            <input 
+              type="file" 
+              className="hidden" 
+              ref={fileInputRef} 
+              multiple 
+              onChange={handleFileSelection}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-full shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/5"
+              onClick={() => fileInputRef.current?.click()}
+              title={t('attach_file')}
+            >
+              <Paperclip size={20} />
+            </Button>
+
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder={t('chat_placeholder')}
+              className="flex-1 min-h-[44px] max-h-[200px] border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent py-2 px-0 resize-none shadow-none text-sm"
+            />
+
+            <Button
+              onClick={handleSend}
+              disabled={isLoading || (!input.trim() && attachedFiles.length === 0)}
+              className="h-9 w-9 rounded-full shrink-0 shadow-md"
+              size="icon"
+            >
+              {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+            </Button>
+          </div>
         </div>
         <p className="text-[10px] text-center text-muted-foreground mt-2">
           {t('chat_disclaimer')}

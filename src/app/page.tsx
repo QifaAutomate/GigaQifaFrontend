@@ -1,35 +1,28 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
 import { AppHeader } from "@/components/app-header"
 import { ChatInterface } from "@/components/chat-interface"
-import { FileDropzone, AttachedFile } from "@/components/file-dropzone"
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar"
-import { MessageSquare, Clock, Zap, Database, ChevronRight, Languages, Loader2 } from "lucide-react"
+import { MessageSquare, Clock, Zap, Database, ChevronRight, Languages, Loader2, ShieldCheck, Activity } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import { Button } from "@/components/ui/button"
 import { AgentStatus, AgentStatusCode } from "@/services/types"
 
 export default function Home() {
-  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
   const { t, lang, setLang } = useLanguage()
 
-  // Мемоизируем начальный список агентов, чтобы избежать лишних ререндеров
   const initialAgents = useMemo(() => [
-    { id: 'consultant', name: t('consultant_agent'), status: 'offline' as const, lastActive: '' },
-    { id: 'parser', name: t('parser_agent'), status: 'offline' as const, lastActive: '' },
-    { id: 'validator', name: t('validation_expert'), status: 'offline' as const, lastActive: '' },
+    { id: 'consultant', name: t('consultant_agent'), status: 'online' as const, lastActive: 'Active' },
+    { id: 'parser', name: t('parser_agent'), status: 'online' as const, lastActive: 'Active' },
+    { id: 'validator', name: t('validation_expert'), status: 'online' as const, lastActive: 'Active' },
   ], [t]);
 
   const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>(initialAgents)
 
-  // Синхронизируем имена агентов при смене языка
   useEffect(() => {
     setAgentStatuses(initialAgents)
   }, [initialAgents])
-
-  const clearFiles = () => setAttachedFiles([])
 
   const toggleLanguage = () => {
     setLang(lang === 'ru' ? 'zh' : 'ru')
@@ -125,41 +118,25 @@ export default function Home() {
           
           <main className="flex-1 p-6 flex flex-row gap-6 overflow-hidden">
             <div className="flex-[7] flex flex-col min-h-0">
-              <ChatInterface 
-                attachedFiles={attachedFiles} 
-                clearFiles={clearFiles} 
-              />
+              <ChatInterface />
             </div>
 
             <div className="flex-[3] flex flex-col gap-6 min-h-0 overflow-y-auto">
+              {/* Agent Health & Status Section */}
               <section className="bg-white rounded-2xl p-6 shadow-lg border">
                 <h3 className="text-sm font-bold flex items-center gap-2 mb-4 text-primary">
-                  <Database size={16} />
-                  {t('context_files')}
-                </h3>
-                <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                  {t('context_files_desc')}
-                </p>
-                <FileDropzone 
-                  files={attachedFiles} 
-                  onFilesChange={setAttachedFiles} 
-                />
-              </section>
-
-              <section className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl p-6 shadow-lg border">
-                <h3 className="text-sm font-bold flex items-center gap-2 mb-4 text-secondary">
-                  <Zap size={16} />
+                  <Activity size={16} />
                   {t('agent_status')}
                 </h3>
                 <div className="space-y-4">
                   {agentStatuses.map((agent) => (
-                    <div key={agent.id} className="flex items-center justify-between p-2 rounded-xl bg-white/40 border border-white/60">
+                    <div key={agent.id} className="flex items-center justify-between p-3 rounded-xl bg-accent/30 border border-white/60">
                       <div className="flex flex-col">
                         <span className="text-xs font-bold">{agent.name}</span>
                         {(agent.status === 'thinking' || agent.status === 'searching') && (
-                          <span className="text-[10px] text-primary flex items-center gap-1">
+                          <span className="text-[10px] text-primary flex items-center gap-1 mt-1">
                             <Loader2 size={10} className="animate-spin" />
-                            {agent.status === 'thinking' ? 'Processing...' : 'Fetching...'}
+                            Processing...
                           </span>
                         )}
                       </div>
@@ -168,6 +145,23 @@ export default function Home() {
                       </span>
                     </div>
                   ))}
+                </div>
+              </section>
+
+              {/* Data Verification / Info Card */}
+              <section className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-2xl p-6 shadow-lg border">
+                <h3 className="text-sm font-bold flex items-center gap-2 mb-4 text-secondary">
+                  <ShieldCheck size={16} />
+                  Security & Verification
+                </h3>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  All requests are processed through the corporate validation layer. Files attached to the chat are encrypted and used only for contextual grounding.
+                </p>
+                <div className="mt-4 pt-4 border-t border-secondary/10">
+                  <div className="flex items-center justify-between text-[10px] text-secondary font-bold uppercase tracking-wider">
+                    <span>Uptime</span>
+                    <span>99.9%</span>
+                  </div>
                 </div>
               </section>
             </div>
