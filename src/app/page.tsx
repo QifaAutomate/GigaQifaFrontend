@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { AppHeader } from "@/components/app-header"
 import { ChatInterface } from "@/components/chat-interface"
+import { LeadSearchView } from "@/components/lead-search-view"
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from "@/components/ui/sidebar"
-import { MessageSquare, Clock, Zap, Database, ChevronRight, Languages, Loader2, ShieldCheck, Activity, Plus } from "lucide-react"
+import { MessageSquare, Clock, Zap, Database, ChevronRight, Languages, Loader2, ShieldCheck, Activity, Plus, Search } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 import { Button } from "@/components/ui/button"
 import { AgentStatus, AgentStatusCode } from "@/services/types"
@@ -12,6 +13,7 @@ import { AgentStatus, AgentStatusCode } from "@/services/types"
 export default function Home() {
   const { t, lang, setLang } = useLanguage()
   const [sessionKey, setSessionKey] = useState(0)
+  const [currentView, setCurrentView] = useState<'chat' | 'leads'>('chat')
 
   const initialAgents = useMemo(() => [
     { id: 'consultant', name: t('consultant_agent'), status: 'online' as const, lastActive: 'Active' },
@@ -31,6 +33,7 @@ export default function Home() {
 
   const handleNewSession = () => {
     setSessionKey(prev => prev + 1)
+    setCurrentView('chat')
   }
 
   const getStatusColor = (status: AgentStatusCode) => {
@@ -71,14 +74,23 @@ export default function Home() {
             </div>
           </SidebarHeader>
           <SidebarContent>
-            <div className="px-4 mb-4">
+            <div className="px-4 mb-2">
               <Button 
                 onClick={handleNewSession}
-                className="w-full justify-start gap-2 h-11 bg-white hover:bg-accent text-foreground border shadow-sm rounded-xl font-semibold"
+                className="w-full justify-start gap-2 h-11 bg-white hover:bg-accent text-foreground border shadow-sm rounded-xl font-semibold mb-2"
                 variant="outline"
               >
                 <Plus size={18} className="text-primary" />
                 <span>{t('new_chat')}</span>
+              </Button>
+              
+              <Button 
+                onClick={() => setCurrentView('leads')}
+                className={`w-full justify-start gap-2 h-11 border shadow-sm rounded-xl font-semibold transition-all ${currentView === 'leads' ? 'bg-primary text-white' : 'bg-white hover:bg-accent text-foreground'}`}
+                variant={currentView === 'leads' ? 'default' : 'outline'}
+              >
+                <Search size={18} className={currentView === 'leads' ? 'text-white' : 'text-primary'} />
+                <span>{t('lead_search')}</span>
               </Button>
             </div>
 
@@ -86,7 +98,7 @@ export default function Home() {
               <SidebarGroupLabel>{t('workspace')}</SidebarGroupLabel>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton isActive>
+                  <SidebarMenuButton isActive={currentView === 'chat'} onClick={() => setCurrentView('chat')}>
                     <MessageSquare size={18} />
                     <span>{t('active_chat')}</span>
                   </SidebarMenuButton>
@@ -134,7 +146,11 @@ export default function Home() {
           
           <main className="flex-1 p-6 flex flex-row gap-6 overflow-hidden">
             <div className="flex-[7] flex flex-col min-h-0">
-              <ChatInterface key={sessionKey} />
+              {currentView === 'chat' ? (
+                <ChatInterface key={sessionKey} />
+              ) : (
+                <LeadSearchView />
+              )}
             </div>
 
             <div className="flex-[3] flex flex-col gap-6 min-h-0 overflow-y-auto">

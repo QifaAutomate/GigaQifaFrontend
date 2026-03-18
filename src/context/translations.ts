@@ -4,6 +4,7 @@ export const translations = {
     workspace: "工作区",
     active_chat: "活跃会话",
     new_chat: "开启新会话",
+    lead_search: "寻找潜客",
     knowledge_base: "知识库",
     recent_history: "历史记录",
     context_files: "上下文文件",
@@ -35,13 +36,21 @@ export const translations = {
     security_title: "安全与验证",
     security_desc: "所有请求均通过企业验证层处理。聊天中附加的文件会被加密，仅用于提供上下文背景。",
     uptime: "运行时间",
-    history_items: ["Q4 财务分析", "库存优化", "客户风险报告", "供应链物流"]
+    history_items: ["Q4 财务分析", "库存优化", "客户风险报告", "供应链物流"],
+    processed_contacts: "已处理联系人",
+    contacts_in_work: "处理中联系人",
+    total_metrics: "总体指标",
+    export_excel: "导出 Excel",
+    group_telegram: "Telegram",
+    group_vk: "VK",
+    group_max: "MAX"
   },
   ru: {
     console_version: "GigaQifa v2.4",
     workspace: "Рабочее пространство",
     active_chat: "Активный чат",
     new_chat: "Новая сессия",
+    lead_search: "Поиск Лидов",
     knowledge_base: "База знаний",
     recent_history: "История",
     context_files: "ФАЙЛЫ КОНТЕКСТА",
@@ -73,7 +82,14 @@ export const translations = {
     security_title: "Безопасность и проверка",
     security_desc: "Все запросы проходят через корпоративный слой валидации. Файлы, прикрепленные к чату, шифруются и используются только для формирования контекста.",
     uptime: "Аптайм",
-    history_items: ["Финансовый анализ Q4", "Оптимизация запасов", "Отчет по рискам клиентов", "Логистика цепочки поставок"]
+    history_items: ["Финансовый анализ Q4", "Оптимизация запасов", "Отчет по рискам клиентов", "Логистика цепочки поставок"],
+    processed_contacts: "Обработанные контакты",
+    contacts_in_work: "Контакты в работе",
+    total_metrics: "Общие показатели",
+    export_excel: "Выгрузить в Excel",
+    group_telegram: "Telegram",
+    group_vk: "VK",
+    group_max: "MAX"
   }
 };
 
