@@ -3,20 +3,21 @@
 import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileSpreadsheet, Users, Activity, BarChart3, TrendingUp } from "lucide-react"
+import { FileSpreadsheet, Users, Activity, BarChart3, TrendingUp, Flame } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
 
 export function LeadSearchView() {
   const { t } = useLanguage()
 
   const metrics = [
-    { id: 'telegram', name: t('group_telegram'), processed: 1240, inWork: 450, icon: <Users className="text-primary" size={18} /> },
-    { id: 'vk', name: t('group_vk'), processed: 890, inWork: 210, icon: <Activity className="text-secondary" size={18} /> },
-    { id: 'max', name: t('group_max'), processed: 560, inWork: 130, icon: <TrendingUp className="text-purple-500" size={18} /> },
+    { id: 'telegram', name: t('group_telegram'), processed: 1240, inWork: 450, warmLeads: 120, icon: <Users className="text-primary" size={18} /> },
+    { id: 'vk', name: t('group_vk'), processed: 890, inWork: 210, warmLeads: 45, icon: <Activity className="text-secondary" size={18} /> },
+    { id: 'max', name: t('group_max'), processed: 560, inWork: 130, warmLeads: 32, icon: <TrendingUp className="text-purple-500" size={18} /> },
   ]
 
   const totalProcessed = metrics.reduce((acc, m) => acc + m.processed, 0)
   const totalInWork = metrics.reduce((acc, m) => acc + m.inWork, 0)
+  const totalWarmLeads = metrics.reduce((acc, m) => acc + m.warmLeads, 0)
 
   const handleExport = (groupId: string) => {
     console.log(`Exporting data for ${groupId}...`)
@@ -42,14 +43,21 @@ export function LeadSearchView() {
             {t('export_excel')}
           </Button>
         </CardHeader>
-        <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <CardContent className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="flex flex-col gap-1">
             <span className="text-xs uppercase font-bold tracking-widest text-muted-foreground">{t('processed_contacts')}</span>
             <span className="text-4xl font-extrabold text-foreground">{totalProcessed.toLocaleString()}</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs uppercase font-bold tracking-widest text-muted-foreground">{t('contacts_in_work')}</span>
-            <span className="text-4xl font-extrabold text-secondary">{totalInWork.toLocaleString()}</span>
+            <span className="text-4xl font-extrabold text-blue-600">{totalInWork.toLocaleString()}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs uppercase font-bold tracking-widest text-secondary flex items-center gap-1">
+              <Flame size={14} fill="currentColor" />
+              {t('warm_leads')}
+            </span>
+            <span className="text-4xl font-extrabold text-secondary">{totalWarmLeads.toLocaleString()}</span>
           </div>
         </CardContent>
       </Card>
@@ -66,14 +74,18 @@ export function LeadSearchView() {
             </CardHeader>
             <CardContent className="pt-4">
               <div className="space-y-4">
-                <div className="flex justify-between items-end">
+                <div className="grid grid-cols-3 gap-2">
                   <div className="flex flex-col">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">{t('processed_contacts')}</span>
-                    <span className="text-xl font-bold">{group.processed}</span>
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground leading-tight">{t('processed_contacts')}</span>
+                    <span className="text-lg font-bold">{group.processed}</span>
+                  </div>
+                  <div className="flex flex-col text-center">
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground leading-tight">{t('contacts_in_work')}</span>
+                    <span className="text-lg font-bold text-blue-600">{group.inWork}</span>
                   </div>
                   <div className="flex flex-col text-right">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">{t('contacts_in_work')}</span>
-                    <span className="text-xl font-bold text-secondary">{group.inWork}</span>
+                    <span className="text-[9px] uppercase font-bold text-secondary leading-tight">{t('warm_leads')}</span>
+                    <span className="text-lg font-bold text-secondary">{group.warmLeads}</span>
                   </div>
                 </div>
                 <Button 
