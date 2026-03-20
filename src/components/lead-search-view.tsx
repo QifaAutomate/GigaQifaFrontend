@@ -10,14 +10,15 @@ export function LeadSearchView() {
   const { t } = useLanguage()
 
   const metrics = [
-    { id: 'telegram', name: t('group_telegram'), processed: 1240, inWork: 450, warmLeads: 120, icon: <Users className="text-primary" size={18} /> },
-    { id: 'vk', name: t('group_vk'), processed: 890, inWork: 210, warmLeads: 45, icon: <Activity className="text-secondary" size={18} /> },
-    { id: 'max', name: t('group_max'), processed: 560, inWork: 130, warmLeads: 32, icon: <TrendingUp className="text-purple-500" size={18} /> },
+    { id: 'telegram', name: t('group_telegram'), processed: 0, inWork: 0, warmLeads: 0, icon: <Users className="text-primary" size={18} /> },
+    { id: 'vk', name: t('group_vk'), processed: 0, inWork: 0, warmLeads: 0, icon: <Activity className="text-secondary" size={18} /> },
+    { id: 'max', name: t('group_max'), processed: 0, inWork: 0, warmLeads: 0, icon: <TrendingUp className="text-purple-500" size={18} /> },
   ]
 
-  const totalProcessed = metrics.reduce((acc, m) => acc + m.processed, 0)
-  const totalInWork = metrics.reduce((acc, m) => acc + m.inWork, 0)
-  const totalWarmLeads = metrics.reduce((acc, m) => acc + m.warmLeads, 0)
+  // Фиксированные общие показатели согласно запросу
+  const totalProcessed = 500
+  const totalInWork = 5000
+  const totalWarmLeads = 42
 
   const handleExport = (groupId: string) => {
     console.log(`Exporting data for ${groupId}...`)
