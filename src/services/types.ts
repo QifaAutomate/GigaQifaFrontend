@@ -29,3 +29,17 @@ export interface MessageResponse {
   confidence: number;
   sources: string[];
 }
+
+export interface LeadGroupMetrics {
+  id: string;
+  processed: number;
+  inWork: number;
+  warmLeads: number;
+}
+
+export interface LeadSearchStats {
+  totalProcessed: number;
+  totalInWork: number;
+  totalWarmLeads: number;
+  groups: LeadGroupMetrics[];
+}

@@ -4,22 +4,20 @@
  */
 
 import { apiClient } from './api-client';
-import { AgentStatus, ChatSession, MessageRequest, MessageResponse } from './types';
+import { AgentStatus, ChatSession, MessageRequest, MessageResponse, LeadSearchStats } from './types';
 
 export const AgentService = {
   /**
    * Получение статуса всех модулей. 
-   * Бэкенд на Python может агрегировать эти данные из разных микросервисов.
    */
   getAgentsStatus: () => 
     apiClient.get<AgentStatus[]>('/orchestrator/status'),
 
   /**
-   * Получение статуса конкретного агента (модуля).
-   * @param agentId 'consultant' | 'parser' | 'validator'
+   * Получение статистики для экрана "Поиск Лидов".
    */
-  getSingleAgentStatus: (agentId: string) =>
-    apiClient.get<AgentStatus>(`/agents/${agentId}/status`),
+  getLeadStats: () =>
+    apiClient.get<LeadSearchStats>('/leads/stats'),
 
   /**
    * Получение истории последних сессий.
@@ -29,7 +27,6 @@ export const AgentService = {
 
   /**
    * Отправка запроса в общую сеть. 
-   * Orchestrator на Python сам решит, какие агенты должны участвовать.
    */
   processQuery: (payload: MessageRequest) => 
     apiClient.post<MessageResponse>('/orchestrator/process', payload),

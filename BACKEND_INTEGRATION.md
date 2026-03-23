@@ -1,123 +1,104 @@
 # 🚀 Гайд по интеграции GigaQifa с вашим Python Бэкендом
 
-Этот документ поможет вам (или вашему бэкенд-разработчику) связать этот фронтенд с логикой на Python. Мы используем **FastAPI**, так как это стандарт для современных ИИ-приложений, но логика применима к любому фреймворку.
+Этот документ поможет вам связать этот фронтенд с вашей логикой на Python (FastAPI).
 
 ---
 
-## 🛠 Шаг 1: Настройка окружения (Frontend)
+## 🛠 Шаг 1: Настройка CORS
 
-Фронтенд должен знать, куда отправлять запросы. 
-Создайте файл `.env.local` в корне проекта (если его еще нет):
-
-```bash
-NEXT_PUBLIC_API_URL=http://<IP_ВАШЕГО_VPS>:8000/api/v1
-```
-
----
-
-## 🐍 Шаг 2: Базовый Python сервер (FastAPI)
-
-Чтобы фронтенд не блокировал запросы, на бэкенде **обязательно** должен быть настроен CORS.
+Чтобы фронтенд мог делать запросы к вашему серверу, добавьте эти настройки в `main.py`:
 
 ```python
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
 
 app = FastAPI()
 
-# КРИТИЧЕСКОЕ: Разрешаем фронтенду общаться с бэкендом
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # В продакшене замените на домен фронтенда
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.get("/api/v1/orchestrator/status")
-async def get_status():
-    # Фронтенд ожидает список статусов агентов
-    return [
-        {"id": "consultant", "name": "Консультант", "status": "online", "lastActive": "Сейчас"},
-        {"id": "parser", "name": "Парсер", "status": "searching", "lastActive": "Сейчас"},
-        {"id": "validator", "name": "Валидатор", "status": "idle", "lastActive": "5 мин назад"},
-    ]
 ```
 
 ---
 
-## 💬 Шаг 3: Обработка сообщений чата
+## 📊 Шаг 2: Обновление счетчиков (Экран Поиск Лидов)
 
-Когда пользователь пишет сообщение, фронтенд вызывает `POST /orchestrator/process`.
+Фронтенд ожидает данные для дашборда по адресу `GET /api/v1/leads/stats`.
 
-**Ожидаемый формат запроса (JSON):**
+**Формат ответа (JSON):**
 ```json
 {
-  "query": "Проанализируй этот отчет",
+  "totalProcessed": 500,
+  "totalInWork": 5000,
+  "totalWarmLeads": 42,
+  "groups": [
+    { "id": "telegram", "processed": 150, "inWork": 1200, "warmLeads": 15 },
+    { "id": "vk", "processed": 200, "inWork": 2500, "warmLeads": 20 },
+    { "id": "max", "processed": 150, "inWork": 1300, "warmLeads": 7 }
+  ]
+}
+```
+
+**Пример на Python:**
+```python
+@app.get("/api/v1/leads/stats")
+async def get_lead_stats():
+    # Здесь вы делаете запрос к вашей БД (PostgreSQL/Redis)
+    return {
+        "totalProcessed": 500,
+        "totalInWork": 5000,
+        "totalWarmLeads": 42,
+        "groups": [
+            {"id": "telegram", "processed": 0, "inWork": 0, "warmLeads": 0},
+            {"id": "vk", "processed": 0, "inWork": 0, "warmLeads": 0},
+            {"id": "max", "processed": 0, "inWork": 0, "warmLeads": 0}
+        ]
+    }
+```
+
+---
+
+## 💬 Шаг 3: Чат и Файлы
+
+Когда пользователь отправляет сообщение, вызывается `POST /orchestrator/process`.
+
+**Запрос:**
+```json
+{
+  "query": "Текст сообщения",
   "contextFiles": ["uuid-файла-123"]
 }
 ```
 
-**Пример реализации на Python:**
-```python
-class MessageRequest(BaseModel):
-    query: str
-    contextFiles: Optional[List[str]] = []
-
-@app.post("/api/v1/orchestrator/process")
-async def process_query(request: MessageRequest):
-    # Здесь ваша магия нейросетей
-    return {
-        "answer": f"Вы спросили: {request.query}. Я проанализировал {len(request.contextFiles)} файлов.",
-        "confidence": 0.98,
-        "sources": ["Отчет_Q4.pdf"]
-    }
+**Ответ:**
+```json
+{
+  "answer": "Ваш ответ пользователю",
+  "confidence": 0.95,
+  "sources": ["название_документа.pdf"]
+}
 ```
 
 ---
 
 ## 📂 Шаг 4: Загрузка файлов (Скрепка)
 
-Когда пользователь нажимает на скрепку и выбирает файл, он отправляется как `multipart/form-data`.
+Когда нажимают на скрепку, файл летит в `POST /api/v1/files/upload`.
 
 ```python
 @app.post("/api/v1/files/upload")
 async def upload_file(file: UploadFile = File(...)):
-    # Сохраняем файл и возвращаем его ID
-    file_id = "some-unique-id" 
-    return {"fileId": file_id}
+    # Сохраните файл и верните его ID
+    return {"fileId": "some-uuid"}
 ```
 
 ---
 
-## 📊 Шаг 5: Поиск Лидов (Метрики)
+## ⚡️ Советы по интеграции:
 
-Для экрана «Поиск Лидов» вам нужно отдавать статистику. Фронтенд сейчас берет тестовые данные из компонента, но вы можете изменить `LeadSearchView.tsx`, чтобы он делал запрос к вашему API.
-
----
-
-## 🚀 Деплой на VPS
-
-1. **Сборка фронтенда**:
-   ```bash
-   npm run build
-   ```
-   *Это создаст папку `.next/standalone`, которую удобно запускать через PM2.*
-
-2. **Запуск бэкенда**:
-   Используйте `uvicorn`:
-   ```bash
-   uvicorn main:app --host 0.0.0.0 --port 8000
-   ```
-
-## ❓ Если "Repository not found" при пуше на GitHub:
-1. Зайдите в браузер на свой GitHub.
-2. Нажмите **New Repository**.
-3. Назовите его `gigaqifa`.
-4. В консоли выполните:
-   ```bash
-   git remote add origin https://github.com/ВАШ_ЛОГИН/gigaqifa.git
-   git push -u origin main
-   ```
+1. **База данных**: Используйте Redis для мгновенного обновления счетчиков или PostgreSQL для аналитики.
+2. **Асинхронность**: Используйте `async def`, чтобы не блокировать сервер при тяжелых расчетах ИИ.
+3. **Логирование**: Настройте логирование запросов, чтобы видеть, какие файлы приходят для контекста.
