@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useEffect, useState } from "react"
@@ -14,25 +15,32 @@ export function LeadSearchView() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // В реальном приложении здесь будет запрос к бэкенду
-    // AgentService.getLeadStats().then(res => { if(res.data) setStats(res.data); setIsLoading(false); })
-    
-    // Имитация загрузки данных согласно вашим значениям
-    const timer = setTimeout(() => {
-      setStats({
-        totalProcessed: 500,
-        totalInWork: 5000,
-        totalWarmLeads: 42,
-        groups: [
-          { id: 'telegram', processed: 0, inWork: 0, warmLeads: 0 },
-          { id: 'vk', processed: 0, inWork: 0, warmLeads: 0 },
-          { id: 'max', processed: 0, inWork: 0, warmLeads: 0 },
-        ]
-      })
-      setIsLoading(false)
-    }, 800)
+    const fetchStats = async () => {
+      try {
+        const response = await AgentService.getLeadStats();
+        if (response.data) {
+          setStats(response.data);
+        } else {
+          // Fallback static values as requested
+          setStats({
+            totalInWork: 5000,
+            totalProcessed: 500,
+            totalWarmLeads: 42,
+            groups: [
+              { id: 'telegram', processed: 0, inWork: 0, warmLeads: 0 },
+              { id: 'vk', processed: 0, inWork: 0, warmLeads: 0 },
+              { id: 'max', processed: 0, inWork: 0, warmLeads: 0 },
+            ]
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch stats", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer)
+    fetchStats();
   }, [])
 
   const handleExport = (groupId: string) => {
