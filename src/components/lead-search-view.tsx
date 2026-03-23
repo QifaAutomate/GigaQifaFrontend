@@ -46,12 +46,12 @@ export function LeadSearchView() {
         </CardHeader>
         <CardContent className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="flex flex-col gap-1">
-            <span className="text-xs uppercase font-bold tracking-widest text-muted-foreground">{t('processed_contacts')}</span>
-            <span className="text-4xl font-extrabold text-foreground">{totalProcessed.toLocaleString()}</span>
-          </div>
-          <div className="flex flex-col gap-1">
             <span className="text-xs uppercase font-bold tracking-widest text-muted-foreground">{t('contacts_in_work')}</span>
             <span className="text-4xl font-extrabold text-blue-600">{totalInWork.toLocaleString()}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs uppercase font-bold tracking-widest text-muted-foreground">{t('processed_contacts')}</span>
+            <span className="text-4xl font-extrabold text-foreground">{totalProcessed.toLocaleString()}</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs uppercase font-bold tracking-widest text-secondary flex items-center gap-1">
@@ -77,15 +77,15 @@ export function LeadSearchView() {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2">
                   <div className="flex flex-col">
-                    <span className="text-[9px] uppercase font-bold text-muted-foreground leading-tight">{t('processed_contacts')}</span>
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground leading-tight">{t('processed_contacts_short')}</span>
                     <span className="text-lg font-bold">{group.processed}</span>
                   </div>
                   <div className="flex flex-col text-center">
-                    <span className="text-[9px] uppercase font-bold text-muted-foreground leading-tight">{t('contacts_in_work')}</span>
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground leading-tight">{t('contacts_in_work_short')}</span>
                     <span className="text-lg font-bold text-blue-600">{group.inWork}</span>
                   </div>
                   <div className="flex flex-col text-right">
-                    <span className="text-[9px] uppercase font-bold text-secondary leading-tight">{t('warm_leads')}</span>
+                    <span className="text-[9px] uppercase font-bold text-secondary leading-tight">{t('warm_leads_short')}</span>
                     <span className="text-lg font-bold text-secondary">{group.warmLeads}</span>
                   </div>
                 </div>
