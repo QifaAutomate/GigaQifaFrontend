@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useRef, useEffect, useCallback } from "react"
@@ -32,7 +31,7 @@ export function ChatInterface() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [attachedFiles, setAttachedFiles] = useState<AttachedFileExtended[]>([])
-  const [inputHeight, setInputHeight] = useState(60)
+  const [inputHeight, setInputHeight] = useState(80) // Увеличил дефолтную высоту для комфорта
   const [isResizing, setIsResizing] = useState(false)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -88,9 +87,6 @@ export function ChatInterface() {
     const selectedFiles = Array.from(e.target.files || [])
     
     for (const file of selectedFiles) {
-      const tempId = Math.random().toString(36).substr(2, 9);
-      
-      // Предварительный просмотр
       const reader = new FileReader()
       reader.onload = (event) => {
         const dataUri = event.target?.result as string
@@ -103,7 +99,6 @@ export function ChatInterface() {
       }
       reader.readAsDataURL(file)
 
-      // Загрузка на бэкенд
       try {
         const response = await AgentService.uploadContextFile(file);
         if (response.data?.fileId) {
@@ -247,11 +242,11 @@ export function ChatInterface() {
           >
             <div 
               onMouseDown={startResizing}
-              className="absolute -top-1.5 left-0 right-0 h-3 cursor-ns-resize z-10 rounded-t-2xl hover:bg-primary/5 transition-colors"
+              className="absolute -top-1.5 left-0 right-0 h-3 cursor-ns-resize z-20 rounded-t-2xl hover:bg-primary/5 transition-colors"
               title="Drag to resize"
             />
             
-            <div className="flex-1 flex items-end gap-2 p-2 px-4 overflow-hidden">
+            <div className="flex-1 flex items-stretch gap-2 p-2 px-4 overflow-hidden">
               <input 
                 type="file" 
                 className="hidden" 
@@ -265,10 +260,10 @@ export function ChatInterface() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={onKeyDown}
                 placeholder={t('chat_placeholder')}
-                className="flex-1 h-full border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent py-2 px-0 resize-none shadow-none text-sm"
+                className="flex-1 min-h-0 h-full border-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent py-2 px-0 resize-none shadow-none text-sm text-foreground"
               />
 
-              <div className="flex items-center gap-1 mb-1">
+              <div className="flex items-center gap-1 self-end mb-1">
                 <Button
                   variant="ghost"
                   size="icon"
