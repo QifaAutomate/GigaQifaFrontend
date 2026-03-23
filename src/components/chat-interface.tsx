@@ -1,9 +1,10 @@
+
 "use client"
 
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { ChatMessage } from "./chat-message"
 import { AttachedFile } from "./file-dropzone"
-import { receiveAgentNetworkResponses } from "@/ai/flows/receive-agent-network-responses"
+import { AgentService } from "@/services/agent-service"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Send, Loader2, Paperclip, X, FileText, FileSpreadsheet, File as FileIcon } from "lucide-react"
@@ -18,6 +19,11 @@ interface Message {
   files?: AttachedFile[]
 }
 
+interface AttachedFileExtended extends AttachedFile {
+  fileId?: string;
+  isUploading?: boolean;
+}
+
 export function ChatInterface() {
   const { t } = useLanguage()
   const { toast } = useToast()
@@ -25,15 +31,13 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFileExtended[]>([])
   const [inputHeight, setInputHeight] = useState(60)
   const [isResizing, setIsResizing] = useState(false)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const resizerRef = useRef<HTMLDivElement>(null)
 
-  // Initialize welcome message
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([
@@ -52,7 +56,6 @@ export function ChatInterface() {
     scrollToBottom()
   }, [messages, isLoading, scrollToBottom])
 
-  // Resizing logic
   const startResizing = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     setIsResizing(true)
@@ -65,8 +68,8 @@ export function ChatInterface() {
   const resize = useCallback((e: MouseEvent) => {
     if (isResizing) {
       const windowHeight = window.innerHeight
-      const newHeight = windowHeight - e.clientY - 120 // Offset for padding and buttons
-      if (newHeight >= 44 && newHeight <= 600) {
+      const newHeight = windowHeight - e.clientY - 120 
+      if (newHeight >= 60 && newHeight <= 600) {
         setInputHeight(newHeight)
       }
     }
@@ -81,28 +84,44 @@ export function ChatInterface() {
     }
   }, [resize, stopResizing])
 
-  const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelection = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
     
-    selectedFiles.forEach(file => {
+    for (const file of selectedFiles) {
+      const tempId = Math.random().toString(36).substr(2, 9);
+      
+      // Предварительный просмотр
       const reader = new FileReader()
       reader.onload = (event) => {
         const dataUri = event.target?.result as string
         setAttachedFiles(prev => [...prev, {
           dataUri,
           mimeType: file.type,
-          fileName: file.name
+          fileName: file.name,
+          isUploading: true
         }])
       }
-      reader.onerror = () => {
+      reader.readAsDataURL(file)
+
+      // Загрузка на бэкенд
+      try {
+        const response = await AgentService.uploadContextFile(file);
+        if (response.data?.fileId) {
+          setAttachedFiles(prev => prev.map(f => 
+            f.fileName === file.name ? { ...f, fileId: response.data?.fileId, isUploading: false } : f
+          ));
+        } else {
+          throw new Error(response.error || "Upload failed");
+        }
+      } catch (error) {
         toast({
           variant: "destructive",
-          title: "File Error",
-          description: `Failed to read ${file.name}`
-        })
+          title: "Upload Error",
+          description: `Failed to upload ${file.name}`
+        });
+        setAttachedFiles(prev => prev.filter(f => f.fileName !== file.name));
       }
-      reader.readAsDataURL(file)
-    })
+    }
     
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
@@ -113,6 +132,13 @@ export function ChatInterface() {
 
   const handleSend = async () => {
     if (!input.trim() && attachedFiles.length === 0) return
+    if (attachedFiles.some(f => f.isUploading)) {
+      toast({
+        title: "Wait",
+        description: "Please wait for files to finish uploading"
+      });
+      return;
+    }
 
     const currentFiles = [...attachedFiles]
     const currentInput = input
@@ -128,12 +154,21 @@ export function ChatInterface() {
     setIsLoading(true)
     
     try {
-      const result = await receiveAgentNetworkResponses({
-        query: currentInput,
-        files: currentFiles.length > 0 ? currentFiles : undefined
-      })
+      const fileIds = currentFiles.map(f => f.fileId).filter((id): id is string => !!id);
       
-      setMessages(prev => [...prev, { role: "assistant", content: result.response }])
+      const response = await AgentService.processQuery({
+        query: currentInput,
+        contextFiles: fileIds.length > 0 ? fileIds : undefined
+      });
+      
+      if (response.data) {
+        setMessages(prev => [...prev, { 
+          role: "assistant", 
+          content: response.data?.answer || "No answer received" 
+        }]);
+      } else {
+        throw new Error(response.error || "Process error");
+      }
     } catch (error) {
       console.error('Chat error:', error)
       setMessages(prev => [...prev, { role: "assistant", content: t('chat_error') }])
@@ -183,12 +218,14 @@ export function ChatInterface() {
 
       <div className="p-4 border-t bg-accent/10">
         <div className="max-w-4xl mx-auto flex flex-col gap-2">
-          {/* Attached Files Preview Area */}
           {attachedFiles.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-2 animate-in fade-in slide-in-from-bottom-2">
               {attachedFiles.map((file, idx) => (
-                <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-white border rounded-xl text-[11px] font-medium shadow-sm group">
-                  {getFileIcon(file.mimeType)}
+                <div key={idx} className={cn(
+                  "flex items-center gap-2 px-3 py-1.5 bg-white border rounded-xl text-[11px] font-medium shadow-sm group",
+                  file.isUploading && "opacity-50"
+                )}>
+                  {file.isUploading ? <Loader2 size={12} className="animate-spin" /> : getFileIcon(file.mimeType)}
                   <span className="max-w-[120px] truncate">{file.fileName}</span>
                   <button 
                     onClick={() => removeAttachedFile(idx)}
@@ -208,7 +245,6 @@ export function ChatInterface() {
             )}
             style={{ height: `${inputHeight}px` }}
           >
-            {/* Top Resize Handle */}
             <div 
               onMouseDown={startResizing}
               className="absolute -top-1.5 left-0 right-0 h-3 cursor-ns-resize z-10 rounded-t-2xl hover:bg-primary/5 transition-colors"
