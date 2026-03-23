@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useRef, useEffect, useCallback } from "react"
@@ -31,7 +32,7 @@ export function ChatInterface() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [attachedFiles, setAttachedFiles] = useState<AttachedFileExtended[]>([])
-  const [inputHeight, setInputHeight] = useState(80) // Увеличил дефолтную высоту для комфорта
+  const [inputHeight, setInputHeight] = useState(100) 
   const [isResizing, setIsResizing] = useState(false)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
